@@ -4,7 +4,8 @@ import "./globals.css";
 import React from "react";
 import Header from '../components/Header';
 import Topnav from "../components/Topnav";
-import Footer from "../components/Footer"
+import Footer from "../components/Footer";
+import { ReactNode } from 'react';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -13,12 +14,11 @@ export const metadata= {
   description: "Breath Clear",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-
+export default function RootLayout({ 
+  children 
+}: { 
+  children: ReactNode  // This defines the type
+}) {
 
   return (
     <html lang="en">

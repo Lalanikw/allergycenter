@@ -102,6 +102,8 @@ export default function ContactForm() {
         </div>
 
         <Button
+          type="button"
+          disabled={!(fullname && email && message)}
             className=" text-md bg-red-600 text-white"><Link href='/Thankyou'>
               Submit
                   </Link>

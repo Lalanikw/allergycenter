@@ -1,174 +1,181 @@
 "use client"
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Calendar } from "./ui/calendar"
 import { CalendarDays, Clock } from 'lucide-react';
 import { Button } from "./ui/button";
 import Image from 'next/image';
 
 function CalendarApp() {
-    const [date, setDate] = useState(new Date());
-    const [timeSlot, setTimeSlot] = useState([]);
-    const [selectedTimeSlot, setSelectedTimeSlot] = useState();
-    const [bookedSlots, setBookedSlots] = useState({}); // to store blocked slots
-    const [userPhone, setUserPhone] = useState("");
-    const [currentTime, setCurrentTime] = useState(new Date());
+  const [date, setDate] = useState(new Date());
+  const [timeSlot, setTimeSlot] = useState([]);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState();
+  const [bookedSlots, setBookedSlots] = useState({});
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+    
+    const isPastday = (day) => {
+    const today = new Date();
+    return day.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0);
+  };
 
-    //Update current time every minute
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 60000); //Update every minute
+  useEffect(() => {
+    const fetchBookedSlots = async () => {
+      try {
 
-        return () => clearInterval(timer);
-    }, []);
+        setLoading(true);
+        setError(null);
 
-    //update time slots whenever the data changes
-    useEffect(() => {
-        const day = getDayType(date); //determine the day type base on the 
-        getTime(day);
-    }, [date, currentTime]); //Adding time dependancy
-
-    const getDayType = (date) => {
-        const dayOfWeek = date.getDay(); // Sunday =0, Monday=1, ... Saturday =6
-        if (dayOfWeek === 6) {
-            return "Saturday"; //Saturday
-        } else if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-            return "Monday-Friday"; //Monday-Friday
+        const response = await fetch("/api/getBookedSlots");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return null; //No slots on Sunday or unsupported days
+
+        const data = await response.json();
+
+        //Ensure data is an array, if not, use empty array
+        const bookingsArray = Array.isArray(data) ? data : [];
+
+        const slots = bookingsArray.reduce((acc, curr) => {
+          const dateKey = curr.date;
+          if (!acc[dateKey]) {
+            acc[dateKey] = [];
+          }
+          acc[dateKey].push(curr.timeSlot);
+          return acc;
+        }, {});
+
+        setBookedSlots(slots);
+      } catch (error) {
+        console.error("Error fetching booked slots:", error);
+        setError("Failed to load bookings. Please try again later.");
+        setBookedSlots({});
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchBookedSlots();
+  }, []);
 
-    //Helper function to convert time string to Date object
-    const timeStringToDate = (timeStr, baseDate) => {
-        const [time, period] = timeStr.split('');
-        const [hours, minutes] = time.split(':');
-        const date = new Date(baseDate);
+  useEffect(() => {
+    const day = getDayType(date);
+    getTime(day);
+  }, [date, currentTime]);
 
-        let hour = parseInt(hours);
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
-        if (period === "PM" && hour !== 12) {
-            hour += 12;
-        } else if (period === "AM" && hour === 12) {
-            hour = 0;
-        }
-        date.setHours(hour, parseInt(minutes), 0, 0);
-        return date;
-    };
+  const timeStringToDate = (timeStr, baseDate) => {
+    const [time, period] = timeStr.split(" ");
+    const [hours, minutes] = time.split(":");
+    const date = new Date(baseDate);
+    let hour = parseInt(hours);
 
-    //check if a time slot should be disabled
-    const isSlotDisabled = (timeStr) => {
-        const slotTime = timeStringToDate(timeStr, date);
-        const oneHourBefore = new Date(slotTime.getTime() - 60 * 60 * 1000);
-
-        //Disable if current time is less than one hour before the slot
-        return currentTime >= oneHourBefore;
-    };
-
-    const getTime = (day) => {
-        const timeList = [];
-
-        //for Saturday (2-4pm)
-        if (day === "Saturday") {
-            for (let i = 2; i <= 3; i++) {
-                ['00', '15', '30', '45'].forEach(minutes => {
-                    const time = `${i}:${minutes} PM`;
-                    timeList.push({
-                        time,
-                        disabled: isSlotDisabled(time)
-                    });
-                });
-            }
-        }
-        //for Monday-Friday (4-6pm)
-        else if (day === "Monday-Friday") {
-            for (let i = 4; i <= 5; i++) {
-                ['00', '15', '30', '45'].forEach(minutes => {
-                    const time = `${i}:${minutes} PM`;
-                    timeList.push({
-                        time,
-                        disabled: isSlotDisabled(time)
-                    });
-                });
-            }
-        }
-        
-        setTimeSlot(timeList)
+    if (period === "PM" && hour !== 12) {
+      hour += 12;
+    } else if (period === "AM" && hour === 12) {
+      hour = 0;
     }
 
-    const handleBooking = () => {
+    date.setHours(hour, parseInt(minutes), 0, 0);
+    return date;
+  };
 
-        //Save the booked slot
-        const dateKey = date.toISOString().split("T")[0]; //Use date as the Key(ex: 2024-12-20 )
+  const isSlotDisabled = (timeStr) => {
+    const slotTime = timeStringToDate(timeStr, date);
+    const oneHourBefore = new Date(slotTime.getTime() - 60 * 60 * 1000);
+    return currentTime >= oneHourBefore;
+  };
+
+  const getDayType = (date) => {
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek === 6) return "Saturday";
+    else if (dayOfWeek >= 1 && dayOfWeek <= 5) return "Monday-Friday";
+    return null;
+  };
+
+  const getTime = (day) => {
+    const timeList = [];
+    if (day === "Saturday") {
+      for (let i = 2; i <= 3; i++) {
+        ["00", "15", "30", "45"].forEach((minutes) => {
+          const time = `${i}:${minutes} PM`;
+          timeList.push({ time, disabled: isSlotDisabled(time) });
+        });
+      }
+    } else if (day === "Monday-Friday") {
+      for (let i = 4; i <= 5; i++) {
+        ["00", "15", "30", "45"].forEach((minutes) => {
+          const time = `${i}:${minutes} PM`;
+          timeList.push({ time, disabled: isSlotDisabled(time) });
+        });
+      }
+    }
+    setTimeSlot(timeList);
+  };
+
+  const handleBooking = async () => {
+    if (!date || !selectedTimeSlot) {
+      alert("Please select a valid date and time slot.");
+      return;
+    }
+
+    const dateKey = date.toISOString().split("T")[0];
+    if (bookedSlots[dateKey]?.includes(selectedTimeSlot)) {
+      alert("This time slot is already booked. Please select a different slot.");
+      return;
+    }
+
+    const bookingData = { date: dateKey, timeSlot: selectedTimeSlot };
+
+    try {
+      // Save booking to MongoDB
+      const response = await fetch("/api/addBookedSlots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingData),
+      });
+
+      if (response.ok) {
         setBookedSlots((prev) => ({
-            ...prev,
-            [dateKey]: [...(prev[dateKey] || []), selectedTimeSlot],
+          ...prev,
+          [dateKey]: [...(prev[dateKey] || []), selectedTimeSlot],
         }));
 
+        // Send WhatsApp message to doctor
+        const doctorPhone = "+94701487980"; // Replace with the doctor's WhatsApp number
+        const message = `New appointment booked:\nDate: ${date.toDateString()}\nTime: ${selectedTimeSlot}`;
+        const whatsappURL = `https://api.whatsapp.com/send?phone=${doctorPhone}&text=${encodeURIComponent(
+          message
+        )}`;
+        const newWindow = window.open(whatsappURL, "_blank");
 
-        if (!date || !selectedTimeSlot || !userPhone || !isValidLocalPhoneNumber(userPhone)) {
-            alert("Please ensure all fields are valid before booking.");
-            return;
+        if (!newWindow) {
+          alert("Please allow pop-ups for this site to send the WhatsApp message.");
         }
 
-        // Format the phone number with the country code (+94 for Sri Lanka)
-        let formattedPhone = userPhone.trim(); // Remove extra spaces
-        if (formattedPhone.startsWith("0")) {
-            formattedPhone = `+94${formattedPhone.slice(1)}`;// Replace leading 0 with +94
-        } else if (!formattedPhone.startsWith("+94")) {
-            formattedPhone = `+94${formattedPhone}`; // Add +94 if it's missing
-        }
-        
-        //Validate the formatted phone number
-        const phoneRegex = /^\+94\d{9}$/; //Matches +94 followed by 9 digits
-        if (!phoneRegex.test(formattedPhone)) {
-            alert("Invalid phone number. Please check and try again.");
-            return;
-        }
-
-        // Construct the WhatsApp URL
-        const message = `Hello, Your appoiment is confirmed on ${date.toDateString()} at ${selectedTimeSlot}.`;
-        const whatsappURL = `https://api.whatsapp.com/send/?phone=${formattedPhone}&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
-
-        console.log(whatsappURL);
-        // Open WhatsApp for confirmation message
-        window.open(whatsappURL, "_blank");
-
-         
-
-        //Clear selection after booking
+        alert("Booking successful!");
         setSelectedTimeSlot(null);
-        setUserPhone("");
-    };
-
-    const isSlotBooked = (slot) => {
-        if (!date || !(date instanceof Date)) {
-            console.log("Invalid Date detected in isSlotBooked.");
-            return false; //default to 'not booked' if date in invalide
-        }
-        const dateKey = date.toISOString().split("T")[0];
-
-        return bookedSlots[dateKey]?.includes(slot);
-    };
-
-    const isPastday = (day) => {
-        const today = new Date();
-        return day.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0);
-    };
-
-    const sendWhatsAppMessage = (message, recipient) => {
-    const url = `https://wa.me/${recipient}?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank");
-    };
-
-    const isValidLocalPhoneNumber = (phone) => {
-        const phoneRegex = /^0\d{9}$/; // Starts with '0' and is exactly 10 digits
-        return phoneRegex.test(phone);
-    };
-
+      } else {
+        alert("Error booking slot. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error booking slot:", error);
+      alert("Error booking slot. Please try again.");
+    }
+  };
 
     return (
-    <div className='flex gap-36 justify-center'>
+      <div className='flex gap-36 justify-center'>
+        
+        {error && (
+        <div className="absolute top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
 
         {/* Left side*/}
         <div className='pt-5 '>
@@ -184,9 +191,9 @@ function CalendarApp() {
                                         mode="single"
                                         selected={date}
                                     onSelect={setDate}
-                                    disabled={isPastday}
-                                        className="rounded-md border border-[#0C4A6E] "
-                                    />
+                                    disabled={isPastday} 
+                className="rounded-md border border-[#0C4A6E] "
+              />
                         </div>
                         </div>
 
@@ -196,43 +203,30 @@ function CalendarApp() {
                                 <Clock className='text-[#0C4A6E] gap-3 lg:text-sm md:text-sm sm:text-sm font-semibold'/>
                                 Select a Time Slot
                             </p>
-                            <div className='grid grid-cols-4 p-2 rounded-md border border-[#0C4A6E] gap-2  '>
-                                {timeSlot?.length > 0 ? (
-                                    timeSlot.map((item,index) => (
-                                    <p
-                                        key={index}
-                                    onClick={() => !isSlotBooked(item.time) && !item.disabled && setSelectedTimeSlot(item.time)}
+                            <div className="grid grid-cols-4 p-2 rounded-md border border-[#0C4A6E] gap-2">
+              {timeSlot?.length > 0 ? (
+                timeSlot.map((item, index) => (
+                  <p
+                    key={index}
+                    onClick={() =>
+                      !bookedSlots[date.toISOString().split("T")[0]]?.includes(item.time) &&
+                      !item.disabled &&
+                      setSelectedTimeSlot(item.time)
+                    }
                     className={`p-1 border cursor-pointer text-center rounded-md ${
-                        isSlotBooked(item.time) || item.disabled
-                            ? "bg-gray-400 text-white cursor-not-allowed"
-                            : "hover:bg-[#0C4A6E] hover:text-white"
+                      bookedSlots[date.toISOString().split("T")[0]]?.includes(item.time) || item.disabled
+                        ? "bg-gray-400 text-white cursor-not-allowed"
+                        : "hover:bg-[#0C4A6E] hover:text-white"
                     } ${
-                        item.time === selectedTimeSlot &&
-                        "bg-red-400 text-[#0C4A6E]"
+                      item.time === selectedTimeSlot && "bg-red-400 text-[#0C4A6E]"
                     }`}
-                > {item.time} </p> ))
+                  >
+                    {item.time} </p> ))
                                 ) : (
                                 <p className="col-span-3 text-center text-gray-500">
                         No available slots. </p>)}
                     </div>
                     
-                    {/* Phone Number Input */}
-                    <div className="mt-10">
-                                <h2 className="flex gap-5 items-center text-blueToRed-400 lg:text-sm md:text-sm sm:text-sm font-semibold">
-                                    Enter Your Phone Number
-                                </h2>
-                                <input
-                                    type="text"
-                                    value={userPhone}
-                                    onChange={(e) => setUserPhone(e.target.value)}
-                                    placeholder="Enter your phone number (ex: 0701112222)"
-                                            className="p-2 border rounded w-full mt-2"
-                                            maxLength={15}
-                                />
-                            </div>
-
-                            
-                                
                     </div>
 
             </div>
@@ -243,7 +237,7 @@ function CalendarApp() {
                     <div className='pt-5'>
                             <Button
                                 type="button"
-                                disabled={!(date && selectedTimeSlot && userPhone && isValidLocalPhoneNumber(userPhone))}
+                                disabled={!(date && selectedTimeSlot)}
                                 onClick={handleBooking}
                                     className="p-5 text-md justify-end bg-red-600 text-white"
                                 >
@@ -259,7 +253,7 @@ function CalendarApp() {
         <div className=" ">
                 <div className=" ">
                     <div className='flex pt-5 gap-3 '>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
                     <p className=''>Our Location</p>
                     </div>
             
