@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 
 // Define the schema for appointments (reuse if already defined elsewhere)
 const appointmentSchema = new mongoose.Schema({
-    date: Date,
+    date: { type: Date, required: true },
     timeSlot: String,
     createdAt: { type: Date, default: Date.now },
 });
@@ -15,6 +15,15 @@ export async function POST(request) {
     try {
         // Parse request body
         const { date, timeSlot } = await request.json();
+
+        //Parse the ISO string to create a Data object
+        const bookingDate = new Date(date);
+
+        //Create booking with parsed data
+        const newBooking = new Appointment({
+            date: bookingDate,
+            timeSlot
+        });
 
         // Validate input
         if (!date || !timeSlot) {
@@ -37,7 +46,6 @@ export async function POST(request) {
         }
 
         // Create a new booking
-        const newBooking = new Appointment({ date, timeSlot });
         const savedBooking = await newBooking.save();
 
         // Respond with success

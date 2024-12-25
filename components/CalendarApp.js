@@ -21,44 +21,6 @@ function CalendarApp() {
   };
 
   useEffect(() => {
-    const fetchBookedSlots = async () => {
-      try {
-
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch("/api/getBookedSlots");
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        //Ensure data is an array, if not, use empty array
-        const bookingsArray = Array.isArray(data) ? data : [];
-
-        const slots = bookingsArray.reduce((acc, curr) => {
-          const dateKey = new Date(curr.date).toISOString().split('T')[0];
-          if (!acc[dateKey]) {
-            acc[dateKey] = [];
-          }
-          acc[dateKey].push(curr.timeSlot);
-          return acc;
-        }, {});
-
-        setBookedSlots(slots);
-      } catch (error) {
-        console.error("Error fetching booked slots:", error);
-        setError("Failed to load bookings. Please try again later.");
-        setBookedSlots({});
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBookedSlots();
-  }, []);
-
-  useEffect(() => {
     const day = getDayType(date);
     getTime(day);
   }, [date, currentTime]);
@@ -90,8 +52,14 @@ function CalendarApp() {
     return currentTime >= oneHourBefore;
   };
 
+  const isSlotBooked = (timeStr) => {
+    const dateKey = date?.toISOString().split("T")[0];
+    console.log('Checking slot:', dateKey, timeStr, bookedSlots[dateKey]); //Debug Log
+  return bookedSlots[dateKey]?.includes(timeStr);
+};
+
   const getDayType = (date) => {
-    const dayOfWeek = date.getDay();
+    const dayOfWeek = date?.getDay();
     if (dayOfWeek === 6) return "Saturday";
     else if (dayOfWeek >= 1 && dayOfWeek <= 5) return "Monday-Friday";
     return null;
@@ -123,14 +91,18 @@ function CalendarApp() {
     return;
   }
 
-  const dateKey = date.toISOString().split("T")[0];
-  if (bookedSlots[dateKey]?.includes(selectedTimeSlot)) {
-    alert("This time slot is already booked. Please select a different slot.");
-    return;
-  }
+    //Create date at start of day in Local timezone
+    const localDate = new Date(date);
+    localDate.setHours(0, 0, 0, 0);
+    const tzOffset = localDate.getTimezoneOffset() * 60000;
+    const adjustedDate = new Date(localDate.getTime() - tzOffset);
+    const dateKey = adjustedDate.toISOString().split('T')[0];
 
-    const bookingData = { date: dateKey, timeSlot: selectedTimeSlot };
-  
+  const bookingData = {
+    date: adjustedDate.toISOString(),  // Send full ISO string
+    timeSlot: selectedTimeSlot
+  };
+
     try {
       // Save booking to MongoDB
       const response = await fetch("/api/addBookedSlots", {
@@ -146,7 +118,7 @@ function CalendarApp() {
           [dateKey]: [...(prev[dateKey] || []), selectedTimeSlot],
         }));
 
-        const formattedDate = new Date(dateKey).toLocaleDateString('en-US', {
+        const formattedDate = adjustedDate.toLocaleDateString('en-US', {
           weekday: 'long',
           year: 'numeric',
           month: 'long',
@@ -177,6 +149,45 @@ function CalendarApp() {
       alert("Error booking slot. Please try again.");
     }
   };
+
+  useEffect(() => {
+    const fetchBookedSlots = async () => {
+      try {
+
+        setLoading(true);
+
+        const response = await fetch("/api/getBookedSlots");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Fetching bookings:', data); //Debug Log
+
+        //Ensure data is an array, if not, use empty array
+        const bookingsArray = Array.isArray(data) ? data : [];
+
+        const slots = bookingsArray.reduce((acc, curr) => {
+          const dateKey = new Date(curr.date).toISOString().split('T')[0];
+          if (!acc[dateKey]) {
+            acc[dateKey] = [];
+          }
+          acc[dateKey].push(curr.timeSlot);
+          return acc;
+        }, {});
+
+        console.log('Processed slots:', slots); //Debug Log
+        setBookedSlots(slots);
+      } catch (error) {
+        console.error("Error fetching booked slots:", error);
+        setError("Failed to load bookings. Please try again later.");
+        setBookedSlots({});
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBookedSlots();
+  }, []);
 
     return (
       <div className='flex gap-36 justify-center'>
@@ -216,22 +227,22 @@ function CalendarApp() {
                             <div className="grid grid-cols-4 p-2 rounded-md border border-[#0C4A6E] gap-2">
               {timeSlot?.length > 0 ? (
                 timeSlot.map((item, index) => (
-                  <p
-                    key={index}
-                    onClick={() =>
-                      !bookedSlots[date.toISOString().split("T")[0]]?.includes(item.time) &&
-                      !item.disabled &&
-                      setSelectedTimeSlot(item.time)
-                    }
-                    className={`p-1 border cursor-pointer text-center rounded-md ${
-                      bookedSlots[date.toISOString().split("T")[0]]?.includes(item.time) || item.disabled
-                        ? "bg-gray-400 text-white cursor-not-allowed"
-                        : "hover:bg-[#0C4A6E] hover:text-white"
-                    } ${
-                      item.time === selectedTimeSlot && "bg-red-400 text-[#0C4A6E]"
-                    }`}
-                  >
-                    {item.time} </p> ))
+                          <p
+                          key={index}
+                          onClick={() =>
+                            !bookedSlots[date.toISOString().split("T")[0]]?.includes(item.time) &&
+                            !item.disabled &&
+                            setSelectedTimeSlot(item.time)
+                          }
+                          className={`p-1 border cursor-pointer text-center rounded-md ${
+                            isSlotBooked(item.time) || item.disabled
+                              ? "bg-gray-400 text-white cursor-not-allowed"
+                              : "hover:bg-[#0C4A6E] hover:text-white"
+                          } ${
+                            item.time === selectedTimeSlot && "bg-red-400 text-[#0C4A6E]"
+                          }`}
+                        >
+                          {item.time} </p> ))
                                 ) : (
                                 <p className="col-span-3 text-center text-gray-500">
                         No available slots. </p>)}
