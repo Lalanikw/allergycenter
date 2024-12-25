@@ -14,7 +14,7 @@ function CalendarApp() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-    
+
     const isPastday = (day) => {
     const today = new Date();
     return day.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0);
@@ -38,7 +38,7 @@ function CalendarApp() {
         const bookingsArray = Array.isArray(data) ? data : [];
 
         const slots = bookingsArray.reduce((acc, curr) => {
-          const dateKey = curr.date;
+          const dateKey = new Date(curr.date).toISOString().split('T')[0];
           if (!acc[dateKey]) {
             acc[dateKey] = [];
           }
@@ -119,18 +119,18 @@ function CalendarApp() {
 
   const handleBooking = async () => {
     if (!date || !selectedTimeSlot) {
-      alert("Please select a valid date and time slot.");
-      return;
-    }
+    alert("Please select a valid date and time slot.");
+    return;
+  }
 
-    const dateKey = date.toISOString().split("T")[0];
-    if (bookedSlots[dateKey]?.includes(selectedTimeSlot)) {
-      alert("This time slot is already booked. Please select a different slot.");
-      return;
-    }
+  const dateKey = date.toISOString().split("T")[0];
+  if (bookedSlots[dateKey]?.includes(selectedTimeSlot)) {
+    alert("This time slot is already booked. Please select a different slot.");
+    return;
+  }
 
     const bookingData = { date: dateKey, timeSlot: selectedTimeSlot };
-
+  
     try {
       // Save booking to MongoDB
       const response = await fetch("/api/addBookedSlots", {
@@ -140,25 +140,35 @@ function CalendarApp() {
       });
 
       if (response.ok) {
+        //update local state
         setBookedSlots((prev) => ({
           ...prev,
           [dateKey]: [...(prev[dateKey] || []), selectedTimeSlot],
         }));
 
-        // Send WhatsApp message to doctor
-        const doctorPhone = "+94701487980"; // Replace with the doctor's WhatsApp number
-        const message = `New appointment booked:\nDate: ${date.toDateString()}\nTime: ${selectedTimeSlot}`;
-        const whatsappURL = `https://api.whatsapp.com/send?phone=${doctorPhone}&text=${encodeURIComponent(
-          message
-        )}`;
-        const newWindow = window.open(whatsappURL, "_blank");
-
-        if (!newWindow) {
-          alert("Please allow pop-ups for this site to send the WhatsApp message.");
-        }
-
-        alert("Booking successful!");
+        const formattedDate = new Date(dateKey).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        
+        // Format the WhatsApp message
+        const message = `🏥 New Appointment\n\n📅 Date: ${formattedDate}\n⏰ Time: ${selectedTimeSlot}`;
+        
+        // Remove the "+" from the phone number as WhatsApp API expects numbers without it
+        // But keep the country code
+        const phoneNumber = "94777420981";
+        
+        // Use the api.whatsapp.com URL format which better handles message pre-population
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+        
+        // Open WhatsApp in new window
+        window.open(whatsappUrl, '_blank');
+        
+      alert("Booking successful!");
         setSelectedTimeSlot(null);
+
       } else {
         alert("Error booking slot. Please try again.");
       }
