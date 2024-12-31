@@ -1,8 +1,12 @@
 import nodemailer from "nodemailer"
 
 export async function POST(req) {
+
+  console.log("API route called");
   
   const { fullname, email, message } = await req.json();
+
+  console.log("Received data:", { fullname, email, message });
   
   //client side validation
   if (!fullname?.trim() || !email?.trim() || !message?.trim()) {

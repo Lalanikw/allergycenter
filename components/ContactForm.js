@@ -12,7 +12,6 @@ export default function ContactForm() {
   const [error, setError] = useState([]);
   const [success, setSuccess] = useState(false);
 
-
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent form submission from reloading the page
     
@@ -46,7 +45,7 @@ export default function ContactForm() {
       setEmail("");
       setMessage("");
       setError(""); //clear any previous errors
-      window.location.href = "/thankyou"; // Redirect to Thank You page
+      window.location.href = "/Thankyou"; // Redirect to Thank You page
     } else {
       setError(msg);
     }
@@ -59,56 +58,54 @@ export default function ContactForm() {
   return (
     <div className="">
       <form
-        onSubmit={handleSubmit}
-        className="ContactForm gap-3 " >
-        <div>
-          <label
-            className='text-blueToRed-400 lg:text-sm md:text-sm sm:text-sm font-semibold'
-            htmlFor="fullname">Full Name*</label>
-          <input
-            onChange={(e) => setFullname(e.target.value)}
-            value={fullname}
-            type="text"
-            id="fullname"
-            placeholder="John Doe"
-          className='text-blueToRed-400 lg:text-sm md:text-sm sm:text-sm'/>
-        </div>
+          onSubmit={handleSubmit}
+          className="ContactForm gap-3 " >
+          <div>
+            <label
+              className='text-blueToRed-400 lg:text-sm md:text-sm sm:text-sm font-semibold'
+              htmlFor="fullname">Full Name*</label>
+            <input
+              onChange={(e) => setFullname(e.target.value)}
+              value={fullname}
+              type="text"
+              id="fullname"
+              placeholder="John Doe"
+            className='text-blueToRed-400 lg:text-sm md:text-sm sm:text-sm'/>
+          </div>
 
-        <div>
-          <label
-            className='text-blueToRed-400 text-[20px] lg:text-sm md:text-sm sm:text-sm font-semibold'
-            htmlFor="email">Email*</label>
-          <input
-            onChange={(e) => setEmail(e.target.value)}
-            value={email}
-            type="text"
-            id="email"
-            placeholder="john@gmail.com"
-            className='text-blueToRed-400 lg:text-sm md:text-sm sm:text-sm'
-          />
-        </div>
+          <div>
+            <label
+              className='text-blueToRed-400 text-[20px] lg:text-sm md:text-sm sm:text-sm font-semibold'
+              htmlFor="email">Email*</label>
+            <input
+              onChange={(e) => setEmail(e.target.value)}
+              value={email}
+              type="text"
+              id="email"
+              placeholder="john@gmail.com"
+              className='text-blueToRed-400 lg:text-sm md:text-sm sm:text-sm'
+            />
+          </div>
 
-        <div>
-          <label
-            className='text-blueToRed-400 text-[20px] lg:text-sm md:text-sm sm:text-sm font-semibold'
-            htmlFor="message">Your Message*</label>
-          <textarea
-            onChange={(e) => setMessage(e.target.value)}
-            value={message}
-            id="message"
-            placeholder="Type your message here..."
-            className='text-blueToRed-400 lg:text-sm md:text-sm sm:text-sm'
-          ></textarea>
-        </div>
+          <div>
+            <label
+              className='text-blueToRed-400 text-[20px] lg:text-sm md:text-sm sm:text-sm font-semibold'
+              htmlFor="message">Your Message*</label>
+            <textarea
+              onChange={(e) => setMessage(e.target.value)}
+              value={message}
+              id="message"
+              placeholder="Type your message here..."
+              className='text-blueToRed-400 lg:text-sm md:text-sm sm:text-sm'
+            ></textarea>
+          </div>
 
-        <Button
-          type="button"
+          <Button
+          type="submit"
           disabled={!(fullname && email && message)}
-            className=" text-md bg-red-600 text-white"><Link href='/Thankyou'>
-              Submit
-                  </Link>
-                  
-                </Button>
+            className=" text-sm md:text-md lg:text-[30px] bg-red-600 text-white">
+              Submit 
+          </Button>
       </form>
     </div>
   );

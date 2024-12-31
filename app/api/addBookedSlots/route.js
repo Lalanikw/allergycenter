@@ -1,22 +1,15 @@
 import dbConnect from "../../../lib/mongodb";
 import {Appointment} from "../../../lib/syncAppointments"
 import { NextResponse } from 'next/server';
-import mongoose from "mongoose";
-
-// Define the schema for appointments (reuse if already defined elsewhere)
-const appointmentSchema = new mongoose.Schema({
-    date: { type: Date, required: true },
-    timeSlot: String,
-    userPhone: String,
-    synced: { type: Date, default: Date.now },
-    googleEventId: String,
-    CreatedAt: {type: Date, default: Date.now}
-});
 
 export async function POST(request) {
     try {
         // Parse request body
         const { date, timeSlot, userPhone } = await request.json();
+
+        // debug logging
+        console.log('Received appointment data:', { date, timeSlot, userPhone });
+
 
         // Validate input
         if (!date || !timeSlot || !userPhone) {
@@ -59,12 +52,15 @@ export async function POST(request) {
         const newBooking = new Appointment({
             date: bookingDate, //store the exact time
             timeSlot,
-            userPhone, 
-            synced: false,
+            userPhone,
+            synced: null,
             googleEventId: null
         });
 
         const savedBooking = await newBooking.save();
+
+        // debug logging
+        console.log('Saved booking:', savedBooking);
 
         // Respond with success
         return NextResponse.json(

@@ -11,11 +11,13 @@ function Header() {
   const pathname = usePathname(); // Get the current path
 
   return (
-    <nav className="flex justify-between bg-blue-100 h-20">
+    <nav className="flex justify-between bg-blue-100 h-20 shadow-md">
       <div className="flex gap-3">
-        <div className="absolute -top-1 z-20 p-2">
+        <div className="absolute -top-1 z-20">
           <Link href="/" passHref>
-            <Image src="/fulllogo.jpg" alt="fullLogo" width={300} height={100} />
+            <Image src="/fulllogo.jpg" alt="fullLogo"
+              width={300} height={100}
+            className="w-[300px] md:w-[300px] sm:w-[200px]"/>
           </Link>
         </div>
       </div>
@@ -62,7 +64,7 @@ function Header() {
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="w-8 h-8 cursor-pointer text-blue-800 float-right"
+            className="w-10 h-10 cursor-pointer text-blue-800 float-right"
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>

@@ -143,7 +143,8 @@ function CalendarApp() {
     const bookingData = {
       date: bookingDateTime.toISOString(),  // This preserves the exact time
       timeSlot: selectedTimeSlot,
-      userPhone: formattedUserPhone
+      userPhone: formattedUserPhone,
+      title: `${userPhone} - Appointment`
     };
 
     // For UI state management, use the date in local timezone
@@ -169,28 +170,37 @@ function CalendarApp() {
           day: "numeric",
         });
 
-       // Messages
-      const ownerMessage = `🏥 New Appointment\n\n📅 Date: ${formattedDate}\n⏰ Time: ${selectedTimeSlot}\n📞 Patient Phone: ${formattedUserPhone}`;
-      const userMessage = `🏥 Your Appointment is Confirmed!\n\n📅 Date: ${formattedDate}\n⏰ Time: ${selectedTimeSlot}\n📍 Location: Aloka Diagnostics\nNo 673, Williamgopallawa Mawatha, Kandy.\n☎️ For queries: +94-81-3838-767`;
+        // Prepare WhatsApp messages
+        const ownerMessage = `🏥 New Appointment\n\n📅 Date: ${formattedDate}\n⏰ Time: ${selectedTimeSlot}\n📞 Patient Phone: ${formattedUserPhone}`;
+        const userMessage = `🏥 Your Appointment is Confirmed!\n\n📅 Date: ${formattedDate}\n⏰ Time: ${selectedTimeSlot}\n📍 Location: Aloka Diagnostics\nNo 673, Williamgopallawa Mawatha, Kandy.\n☎️ For queries: +94-81-3838-767`;
 
-      // Send WhatsApp messages via API
-      await fetch('/api/sendWhatsAppMessage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: process.env.NEXT_PUBLIC_OWNER_PHONE,
-          message: ownerMessage,
-        }),
-      });
+        // Open WhatsApp Web for owner message
+        const ownerPhoneNumber = process.env.NEXT_PUBLIC_OWNER_PHONE?.replace(/\+/g, '') || ''; 
+        window.open(`https://wa.me/${ownerPhoneNumber}?text=${encodeURIComponent(ownerMessage)}`);
 
-      await fetch('/api/sendWhatsAppMessage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: `whatsapp:+${formattedUserPhone}`,
-          message: userMessage,
-        }),
-      });
+        // Open WhatsApp Web for user message
+        const userPhoneNumber = formattedUserPhone.replace(/\+/g, '');
+        window.open(`https://wa.me/${userPhoneNumber}?text=${encodeURIComponent(userMessage)}`, '_blank');
+
+
+      // Send WhatsApp messages via API (using Twilio )
+      // await fetch('/api/sendWhatsAppMessage', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     to: process.env.NEXT_PUBLIC_OWNER_PHONE,
+      //     message: ownerMessage,
+      //   }),
+      // });
+
+      // await fetch('/api/sendWhatsAppMessage', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     to: `whatsapp:+${formattedUserPhone}`,
+      //     message: userMessage,
+      //   }),
+      // });
 
       alert("Booking successful! WhatsApp messages sent.");
     } else {
@@ -248,7 +258,7 @@ function CalendarApp() {
         {/* Left side*/}
         <div className='pt-5 '>
 
-          <div className='flex gap-5'>
+          <div className='flex flex-col md:flex-row gap-5'>
                   {/* Calendar*/}
                   <div className='gap-4 pb-4 items-baseline'>
                           <p className='flex gap-3 items-center'>
@@ -299,7 +309,7 @@ function CalendarApp() {
             
                   {/* phone number*/}
               <PhonePicker
-              userPhone={userPhone} setUserPhone={setUserPhone}/>
+                userPhone={userPhone} setUserPhone={setUserPhone} />
                   
                 </div>
 

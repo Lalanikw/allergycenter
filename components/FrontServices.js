@@ -21,7 +21,7 @@ const FrontServices = () => {
                     <div className="w-full md:w-1/4 ">
                         <div className="p-3 text-justify rounded-lg shadow-md bg-gradient-to-br from-red-100 via-blue-100 to-blue-100 hover:shadow-lg transition-shadow duration-300">
                             <h1 className="font-semibold mb-1 bg-gradient-to-t from-[#0C4A6E] to-[#FF0000] bg-clip-text text-transparent lg:text-md md:text-sm sm:text-sm">Skin Allergies</h1>
-                        <p className="leading-relaxed mb-2">Skin allergies manifest as itching, redness, hives, and eczema. Common triggers include allergens in the environment, certain foods, or irritants such as soaps and detergents. Treatment focuses on alleviating discomfort and managing flare-ups effectively.</p>
+                        <p className="leading-relaxed mb-2">Skin allergies manifest as itching, redness, hives, and eczema, which can cause discomfort and disrupt daily life. Common triggers include allergens in the environment, certain foods, or irritants such as soaps and detergents. Treatment focuses on alleviating discomfort and managing flare-ups effectively.</p>
                         </div>
                     </div>
                     <div className="w-full md:w-1/4 ">

@@ -5,7 +5,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import React from "react";
 import Header from '../components/Header';
-import Topnav from "../components/Topnav";
 import Footer from "../components/Footer";
 import { ReactNode } from 'react';
 
@@ -31,7 +30,6 @@ export default function RootLayout({
 </head>
 
       <body className={inter.className}>
-        {/* <Topnav/> */}
         <Header />
 
         {children}

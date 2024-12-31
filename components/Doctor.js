@@ -8,7 +8,7 @@ const Doctor = () => {
       <div className=''>
         <div className='lg:flex-row lg:mt-[1px] md:mt-[2px] sm:mt-[1px] '>
           
-          <div className='p-10 text-justify'>
+          <div className='p-5 text-justify'>
             <div className="gradient-line"></div>
                   <div>
                       <h1 className='text-blueToRed-400 text-[20px] lg:text-xl md:text-md sm:text-md font-semibold'>Meet Dr. Thilanka</h1>
