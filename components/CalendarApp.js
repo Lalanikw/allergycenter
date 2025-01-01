@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState} from 'react';
+import React, { useEffect, useState, useCallback} from 'react';
 import { Calendar } from "./ui/calendar"
 import { CalendarDays, Clock } from 'lucide-react';
 import { Button } from "./ui/button";
@@ -21,11 +21,6 @@ function CalendarApp() {
   const today = new Date();
   return day.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0);
   };
-
-  useEffect(() => {
-    const day = getDayType(date);
-    getTime(day);
-  }, [date, currentTime]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -66,7 +61,7 @@ function CalendarApp() {
     return null;
   };
 
-  const getTime = (day) => {
+  const getTime = React.useCallback((day) => {
     const timeList = [];
     if (day === "Saturday") {
       for (let i = 2; i <= 3; i++) {
@@ -84,7 +79,12 @@ function CalendarApp() {
       }
     }
     setTimeSlot(timeList);
-  };
+  }, [isSlotDisabled]);;
+
+    useEffect(() => {
+    const day = getDayType(date);
+    getTime(day);
+  }, [date, currentTime, getTime]);
 
   const validatePhone = (phone) => {
     // Basic phone validation for Sri Lankan numbers

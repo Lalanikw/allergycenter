@@ -3,6 +3,7 @@ import {Appointment} from "../../../lib/syncAppointments"
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
+    
     try {
         // Parse request body
         const { date, timeSlot, userPhone } = await request.json();
