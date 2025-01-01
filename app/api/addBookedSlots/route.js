@@ -5,12 +5,25 @@ import { NextResponse } from 'next/server';
 export async function POST(request) {
     
     try {
+
+        //Parse request body with validation for JSON
+        let requestBody;
+        try {
+            requestBody = await request.json();     
+        }
+        
+     catch (err) {
+        console.error("Invalid JSON payload:", err);
+        return NextResponse.json(
+            { error: "Invalid request format" },
+            { status: 400 }
+        );
+    }
         // Parse request body
-        const { date, timeSlot, userPhone } = await request.json();
+        const { date, timeSlot, userPhone } = requestBody;
 
-        // debug logging
+ // Debug logging
         console.log('Received appointment data:', { date, timeSlot, userPhone });
-
 
         // Validate input
         if (!date || !timeSlot || !userPhone) {
@@ -19,7 +32,7 @@ export async function POST(request) {
                 { status: 400 }
             );
         }
-
+        
         //Parse the ISO string to create a Data object
         const bookingDate = new Date(date);
 
