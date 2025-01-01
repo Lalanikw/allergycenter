@@ -79,7 +79,7 @@ export async function POST(request) {
             { status: 201 }
         );
     } catch (error) {
-        console.error("Database Error:", error);
+        console.error("Database Error:", error.message || error);
         return NextResponse.json(
             { error: "Failed to book appointment. Please try again." },
             { status: 500 }
