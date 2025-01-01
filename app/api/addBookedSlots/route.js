@@ -17,9 +17,8 @@ export async function POST(request) {
         }
 
         const { date, timeSlot, userPhone } = requestBody;
-
-        // Debugging log
-        console.log("Received appointment data:", { date, timeSlot, userPhone });
+        // Log the parsed body directly
+        console.log("Received appointment data:", requestBody);
 
         // Input validation
         if (!date || !timeSlot || !userPhone) {
