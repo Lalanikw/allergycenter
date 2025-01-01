@@ -1,6 +1,7 @@
 import dbConnect from "../../../lib/mongodb";
 import { Appointment } from "../../../lib/syncAppointments";
 import { NextResponse } from "next/server";
+import { syncAppointmentsToGoogleCalendar } from '../../../lib/syncAppointments';
 
 export async function POST(request) {
     try {
@@ -68,6 +69,13 @@ export async function POST(request) {
         // Debugging log
         console.log("Saved booking:", savedBooking);
 
+        //sync trigger
+        try {
+            await syncAppointmentsToGoogleCalendar();
+        } catch (syncError) {
+            console.error('Webhook sync error:', syncError);
+        }
+
         // Return success response
         return NextResponse.json(
             {
@@ -85,4 +93,5 @@ export async function POST(request) {
             { status: 500 }
         );
     }
+
 }
