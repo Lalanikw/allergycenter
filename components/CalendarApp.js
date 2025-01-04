@@ -5,6 +5,7 @@ import { Calendar } from "./ui/calendar"
 import { CalendarDays, Clock } from 'lucide-react';
 import { Button } from "./ui/button";
 import PhonePicker from './PhonePicker';
+import { WhatsAppService } from '../lib/WhatsAppService';
 
 function CalendarApp() {
   const [date, setDate] = useState(new Date());
@@ -163,46 +164,22 @@ function CalendarApp() {
           [dateKey]: [...(prev[dateKey] || []), selectedTimeSlot],
         }));
 
-        const formattedDate = bookingDateTime.toLocaleDateString("en-US", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
+        // Initialize WhatsApp service
+      const whatsappService = new WhatsAppService(process.env.NEXT_PUBLIC_OWNER_PHONE);
+      
+      // Send messages
+      const messageResult = await whatsappService.sendMessages({
+        date: bookingDateTime,
+        timeSlot: selectedTimeSlot,
+        userPhone: formattedUserPhone
+      });
 
-        // Prepare WhatsApp messages
-        const ownerMessage = `🏥 New Appointment\n\n📅 Date: ${formattedDate}\n⏰ Time: ${selectedTimeSlot}\n📞 Patient Phone: ${formattedUserPhone}`;
-        const userMessage = `🏥 Your Appointment is Confirmed!\n\n📅 Date: ${formattedDate}\n⏰ Time: ${selectedTimeSlot}\n📍 Location: Aloka Diagnostics\nNo 673, Williamgopallawa Mawatha, Kandy.\n☎️ For queries: +94-81-3838-767`;
+      if (messageResult.success) {
+        alert("Booking successful! WhatsApp messages sent.");
+      } else {
+        alert("Booking successful, but there was an issue sending WhatsApp messages.");
+      }
 
-        // Open WhatsApp Web for owner message
-        const ownerPhoneNumber = process.env.NEXT_PUBLIC_OWNER_PHONE?.replace(/\+/g, '') || ''; 
-        window.open(`https://wa.me/${ownerPhoneNumber}?text=${encodeURIComponent(ownerMessage)}`);
-
-        // Open WhatsApp Web for user message
-        const userPhoneNumber = formattedUserPhone.replace(/\+/g, '');
-        window.open(`https://wa.me/${userPhoneNumber}?text=${encodeURIComponent(userMessage)}`, '_blank');
-
-
-      // Send WhatsApp messages via API (using Twilio )
-      // await fetch('/api/sendWhatsAppMessage', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     to: process.env.NEXT_PUBLIC_OWNER_PHONE,
-      //     message: ownerMessage,
-      //   }),
-      // });
-
-      // await fetch('/api/sendWhatsAppMessage', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     to: `whatsapp:+${formattedUserPhone}`,
-      //     message: userMessage,
-      //   }),
-      // });
-
-      alert("Booking successful! WhatsApp messages sent.");
     } else {
       alert("Error booking slot. Please try again.");
     }
@@ -210,7 +187,7 @@ function CalendarApp() {
     console.error("Error booking slot:", error);
     alert("Error booking slot. Please try again.");
   }
-};
+};  
 
   useEffect(() => {
     const fetchBookedSlots = async () => {
