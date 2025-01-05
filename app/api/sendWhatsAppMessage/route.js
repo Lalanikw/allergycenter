@@ -1,42 +1,31 @@
-import twilio from 'twilio';
+import { NextResponse } from 'next/server';
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const client = twilio(accountSid, authToken);
-
-export async function POST(request) {
+export async function POST(req) {
   try {
-    const body = await request.json();
-    const { to, message } = body;
+    const { to, message } = await req.json();
 
-    // Log the inputs to debug
-    console.log('Twilio request parameters:', { to, message });
+    // Make sure you have these environment variables set
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const fromNumber = process.env.TWILIO_WHATSAPP_NUMBER;
 
-    if (!to || !message) {
-      return new Response(
-        JSON.stringify({ error: 'Missing "to" or "message" parameter' }), 
-        { status: 400 }
-      );
+    if (!accountSid || !authToken || !fromNumber) {
+      throw new Error('Missing Twilio credentials');
     }
 
+    const client = require('twilio')(accountSid, authToken);
+
     const response = await client.messages.create({
-      from: process.env.TWILIO_WHATSAPP_NUMBER,
-      to,
       body: message,
+      from: `whatsapp:${fromNumber}`,
+      to: `whatsapp:+${to}`
     });
 
-    // Log the Twilio API response
-    console.log('Twilio API response:', response);
-
-    return new Response(
-      JSON.stringify({ success: true, sid: response.sid }), 
-      { status: 200 }
-    );
-    
+    return NextResponse.json({ success: true, messageId: response.sid });
   } catch (error) {
-    console.error('Error sending WhatsApp message:', error);
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }), 
+    console.error('WhatsApp API Error:', error);
+    return NextResponse.json(
+      { success: false, error: error.message },
       { status: 500 }
     );
   }

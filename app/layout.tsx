@@ -12,7 +12,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 const metadata= {
   title:"Allergy Center",
-  description: "Breath Clear",
+  description: "Advanced Care for your Allergy Relief",
 };
 
 export default function RootLayout({ 
