@@ -5,7 +5,7 @@ import { Calendar } from "./ui/calendar"
 import { CalendarDays, Clock } from 'lucide-react';
 import { Button } from "./ui/button";
 import PhonePicker from './PhonePicker';
-import { WhatsAppService } from '../lib/WhatsAppService';
+import { WhatsAppService } from '../lib/WhatsAppService.js';
 
 function CalendarApp() {
   const [date, setDate] = useState(new Date());
