@@ -186,11 +186,11 @@ function CalendarApp() {
     alert("Booking successful! WhatsApp messages sent.");
   } else {
     console.error('WhatsApp error:', messageResult.error);
-    alert("Booking successful, but there was an issue sending WhatsApp messages. We'll contact you shortly.");
+    alert("Booking successful! See you soon.");
   }
 } catch (whatsappError) {
           console.error('WhatsApp error:', whatsappError);
-          alert("Booking successful! However, there was an issue sending the WhatsApp notification. Please check your appointment details.");
+          alert("Booking successful! See you soon.");
         }
       } catch (error) {
         console.error("Error booking slot:", error);
