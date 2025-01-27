@@ -10,10 +10,10 @@ body {
 }
 
 p {
-  font-size: 16px;
+  font-size: 15clear git spx;
   line-height: 1.6;
   margin-bottom: 1rem;
-  color: #0C4A6E;
+  color: #0c4a6e;
 }
 
 .gradient-line {
@@ -21,7 +21,7 @@ p {
   height: 4px;
   align-items: center;
   /* Adjust the height as needed */
-  background: linear-gradient(to right, #0C4A6E, #FF0000);
+  background: linear-gradient(to right, #0c4a6e, #ff0000);
   /* Gradient from pri-blue to pri-red */
   margin: 25px auto;
   /* Add some space around the line */
@@ -32,8 +32,6 @@ p {
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
 }
-
-
 
 @media (prefers-color-scheme: dark) {
   :root {

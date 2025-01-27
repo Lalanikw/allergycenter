@@ -43,7 +43,8 @@ export default function page() {
                 <h2 className='bg-gradient-to-t from-[#0C4A6E] to-[#FF0000] bg-clip-text text-transparent lg:text-md md:text-sm sm:text-sm font-bold'>Phone: </h2>
                 <div>
                     <p className='text-blueToRed-400 lg:text-sm md:text-sm sm:text-sm font-semibold'>+94-81-3838-767</p>
-                    <p className='text-blueToRed-400 lg:text-sm md:text-sm sm:text-sm font-semibold'>+94-76-8246-914</p>
+              <p className='text-blueToRed-400 lg:text-sm md:text-sm sm:text-sm font-semibold'>+94-76-8246-914</p>
+              <p className='text-blueToRed-400 lg:text-sm md:text-sm sm:text-sm font-semibold'>+94-77-1418-699</p>
                     
                 </div>
             </div>

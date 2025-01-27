@@ -15,9 +15,10 @@ const PhonePicker = ({ userPhone, setUserPhone }) => {
   const formatPhoneNumber = (phone) => {
     const cleanPhone = phone.replace(/\s+/g, '').replace(/^\+/, '');
     if (cleanPhone.startsWith('94')) return `+${cleanPhone}`;
-    if (cleanPhone.startsWith('0')) return `+94${cleanPhone.slice(1)}`;
-    return `+94${cleanPhone}`;
-  };
+    if (cleanPhone.startsWith('0')) return `${cleanPhone.slice(1)}`;
+    return `${cleanPhone}`;
+};
+
 
   // Handle changes in the phone number input
   const handlePhoneChange = (event) => {

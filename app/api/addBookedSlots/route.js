@@ -59,7 +59,7 @@ export async function POST(request) {
         const newBooking = new Appointment({
             date: bookingDate,
             timeSlot,
-            userPhone,
+            userPhone: requestBody.title.split(' ')[0],
             synced: null,
             googleEventId: null,
         });

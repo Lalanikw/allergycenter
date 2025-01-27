@@ -26,8 +26,9 @@ const FrontServices = () => {
                     </div>
                     <div className="w-full md:w-1/4 ">
                         <div className="p-3 text-justify rounded-lg shadow-md bg-gradient-to-br from-red-100 via-blue-100 to-blue-100 hover:shadow-lg transition-shadow duration-300">
-                            <h1 className="font-semibold mb-1 bg-gradient-to-t from-[#0C4A6E] to-[#FF0000] bg-clip-text text-transparent lg:text-md md:text-sm sm:text-sm">Food Allergies</h1>
-                        <p className="leading-relaxed mb-2">Food allergies can cause a variety of symptoms, including abdominal pain, discomfort (dyspepsia), and irritable bowel syndrome. Common allergens include dairy, nuts, eggs, and shellfish. Managing food allergies often involves avoiding triggers and using medication to manage reactions.</p>
+                            <h1 className="font-semibold mb-1 bg-gradient-to-t from-[#0C4A6E] to-[#FF0000] bg-clip-text text-transparent lg:text-md md:text-sm sm:text-sm">Drug Allergies</h1>
+              <p className="leading-relaxed mb-2">Drug allergies occur when the immune system reacts negatively to certain medications, such as antibiotics, NSAIDs, or pain relievers. Symptoms can range from mild rashes to severe anaphylactic reactions. Identifying the trigger medication is essential along with avoidance and emergency treatment if needed.
+                </p>
                         </div>
                     </div>
                     <div className="w-full md:w-1/4 ">

@@ -8,6 +8,8 @@ import PhonePicker from './PhonePicker';
 import { WhatsAppService } from '../lib/WhatsAppService.js';
 import { Loader2 } from 'lucide-react';
 
+const whatsappService = new WhatsAppService();
+
 function CalendarApp() {
   const [date, setDate] = useState(new Date());
   const [timeSlot, setTimeSlot] = useState([]);
@@ -19,10 +21,41 @@ function CalendarApp() {
   const [userPhone, setUserPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [isBooking, setIsBooking] = useState(false);
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [loadingAvailability, setLoadingAvailability] = useState(true);
 
-  const isPastday = (day) => {
+  const fetchAvailability = async () => {
+    try {
+      const response = await fetch("/api/getAvailabilityStatus");
+      const data = await response.json();
+      setIsAvailable(data.isAvailable); // Update the availability status
+    } catch (error) {
+      console.error("Error fetching availability status:", error);
+    } finally {
+      setLoadingAvailability(false); // Loading is done
+    }
+  };
+
+  useEffect(() => {
+    fetchAvailability();
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const isDayDisabled = (day) => {
     const today = new Date();
-    return day.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0);
+    const dayOfWeek = day.getDay();
+
+    return (
+      day.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0) ||
+      dayOfWeek === 0 ||
+      dayOfWeek === 2 ||
+      dayOfWeek === 4 ||
+      dayOfWeek === 5
+    );
   };
 
   useEffect(() => {
@@ -53,8 +86,9 @@ function CalendarApp() {
 
   const getDayType = (date) => {
     const dayOfWeek = date?.getDay();
+    if (dayOfWeek === 1) return "Monday";
+    if (dayOfWeek === 3) return "Wednesday";
     if (dayOfWeek === 6) return "Saturday";
-    else if (dayOfWeek >= 1 && dayOfWeek <= 5) return "Monday-Friday";
     return null;
   };
 
@@ -74,7 +108,7 @@ function CalendarApp() {
           timeList.push({ time, disabled: isSlotDisabled(time) });
         });
       }
-    } else if (day === "Monday-Friday") {
+    } else if (day === "Monday" || day ==="Wednesday") {
       for (let i = 4; i <= 5; i++) {
         ["00", "15", "30", "45"].forEach((minutes) => {
           const time = `${i}:${minutes} PM`;
@@ -92,24 +126,6 @@ function CalendarApp() {
     getTime(day);
   }, [date, currentTime, getTime]);
 
-  const validatePhone = (phone) => {
-    // Basic phone validation for Sri Lankan numbers
-    const phoneRegex = /^(?:\+94|94|0)?[1-9]\d{8}$/;
-    return phoneRegex.test(phone.replace(/\s+/g, ''));
-  };
-
-  const formatPhoneNumber = (phone) => {
-    // Format phone number to include country code if not present
-    const cleanPhone = phone.replace(/\s+/g, '').replace(/^\+/, '');
-    if (cleanPhone.startsWith('94')) {
-      return cleanPhone;
-    }
-    if (cleanPhone.startsWith('0')) {
-      return '94' + cleanPhone.slice(1);
-    }
-    return '94' + cleanPhone;
-  };
-
   const handleBooking = async () => {
     if (!date || !selectedTimeSlot) {
       alert("Please select a valid date and time slot.");
@@ -121,17 +137,11 @@ function CalendarApp() {
       return;
     }
 
-    if (!validatePhone(userPhone)) {
-      setPhoneError('Please enter a valid Sri Lankan phone number');
-      return;
-    }
-
     setPhoneError('');
     setIsBooking(true); //start loading state
   
     try {
-
-      const formattedUserPhone = formatPhoneNumber(userPhone);
+      // const formattedUserPhone = formatPhoneNumber(userPhone);
       const [time, period] = selectedTimeSlot.split(" ");
       const [hours, minutes] = time.split(":");
       let hour = parseInt(hours);
@@ -150,12 +160,9 @@ function CalendarApp() {
       const bookingData = {
         date: bookingDateTime.toISOString(),  // This preserves the exact time
         timeSlot: selectedTimeSlot,
-        userPhone: formattedUserPhone,
+        userPhone,
         title: `${userPhone} - Appointment`
       };
-
-      // For UI state management, use the date in local timezone
-      const dateKey = bookingDateTime.toLocaleDateString("en-CA");
 
       const response = await fetch("/api/addBookedSlots", {
         method: "POST",
@@ -166,39 +173,39 @@ function CalendarApp() {
       if (!response.ok) {
       throw new Error('Failed to save booking');
       }
-      
-        setBookedSlots((prev) => ({
-          ...prev,
-          [dateKey]: [...(prev[dateKey] || []), selectedTimeSlot],
-        }));
 
         // Initialize WhatsApp service
-
         try {
-  const whatsappService = new WhatsAppService(process.env.NEXT_PUBLIC_OWNER_PHONE);
   const messageResult = await whatsappService.sendMessages({
     date: bookingDateTime,
     timeSlot: selectedTimeSlot,
-    userPhone: formattedUserPhone
+    userPhone,
   });
 
   if (messageResult.success) {
-    alert("Booking successful! WhatsApp messages sent.");
+    alert("Booking successful! See you soon. ");
   } else {
-    console.error('WhatsApp error:', messageResult.error);
-    alert("Booking successful! See you soon.");
+    console.error("WhatsApp error:", messageResult.error);
+    alert(`Booking successful! See you soon.`);
   }
 } catch (whatsappError) {
-          console.error('WhatsApp error:', whatsappError);
-          alert("Booking successful! See you soon.");
-        }
-      } catch (error) {
-        console.error("Error booking slot:", error);
-        alert("Error booking slot. Please try again.");
-      } finally {
-        setIsBooking(false);
-      }
-    };
+  console.error("WhatsApp error:", whatsappError);
+  alert("Booking successful! See you soon.");
+}
+
+    // Update UI with booked slots
+    const dateKey = bookingDateTime.toLocaleDateString("en-CA");
+    setBookedSlots((prev) => ({
+      ...prev,
+      [dateKey]: [...(prev[dateKey] || []), selectedTimeSlot],
+    }));
+  } catch (error) {
+    console.error("Error booking slot:", error);
+    alert("Error booking slot. Please try again.");
+  } finally {
+    setIsBooking(false);
+  }
+};
 
     useEffect(() => {
       const fetchBookedSlots = async () => {
@@ -229,10 +236,23 @@ function CalendarApp() {
           setBookedSlots({});
         } finally {
           setLoading(false);
-        }
-      };
+        }};
       fetchBookedSlots();
     }, []);
+  
+   if (loadingAvailability) {
+    return <p>Loading availability...</p>;
+  }
+
+  if (!isAvailable) {
+    return (
+      <div className="flex justify-center">
+        <p className="text-red-500 text-lg">
+          We are currently out of the office and not accepting bookings at this time.
+        </p>
+      </div>
+    );
+  }
 
     return (
       <div className='flex gap-36 justify-center'>
@@ -267,8 +287,8 @@ function CalendarApp() {
                   mode="single"
                   selected={date}
                   onSelect={setDate}
-                  disabled={isPastday}
-                  className="rounded-md border border-[#0C4A6E] "
+                  disabled={isDayDisabled}
+                  className="rounded-md border border-[#0C4A6E] custom-calendar "
                 />
               </div>
             </div>

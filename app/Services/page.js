@@ -72,7 +72,7 @@ export default function page() {
                       <div className="w-full md:w-1/4 ">
                           <div className="p-3 text-justify rounded-lg shadow-md bg-gradient-to-br from-red-100 via-blue-100 to-blue-100 hover:scale-110 transition-all duration-300">
                             <h1 className="font-semibold mb-1 bg-gradient-to-t from-[#0C4A6E] to-[#FF0000] bg-clip-text text-transparent lg:text-md md:text-sm sm:text-sm">Drug Allergies</h1>
-              <p className="leading-relaxed mb-2">Drug allergies occur when the immune system reacts negatively to certain medications, such as antibiotics, NSAIDs, or pain relievers. Symptoms can range from mild rashes to severe anaphylactic reactions. Avoidance of the trigger medication is key, along with emergency treatment if needed.
+              <p className="leading-relaxed mb-2">Drug allergies occur when the immune system reacts negatively to certain medications, such as antibiotics, NSAIDs, or pain relievers. Symptoms can range from mild rashes to severe anaphylactic reactions. Identifying the trigger medication is essential along with avoidance and emergency treatment if needed.
                 </p>
                         </div>
                       </div>

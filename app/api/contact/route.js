@@ -10,11 +10,11 @@ export async function POST(req) {
   
   //client side validation
   if (!fullname?.trim() || !email?.trim() || !message?.trim()) {
-  return new Response(
-    JSON.stringify({ success: false, msg: "All fields are required." }),
-    { status: 400 }
-  );
-}
+    return new Response(
+      JSON.stringify({ success: false, msg: "All fields are required." }),
+      { status: 400 }
+    );
+  }
 
     //configure Nodemailer
     const transporter = nodemailer.createTransport({
